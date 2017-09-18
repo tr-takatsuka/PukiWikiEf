@@ -26,6 +26,21 @@ function get_source($page = NULL, $lock = TRUE, $join = FALSE)
 		// Compat for foreach(get_source($file) as $line) {} not to warns
 
 	$path = get_filename($page);
+if(1){
+	$result = EncryptFile::decryptDataUser( file_get_contents($path) );
+	if( $result === false ){
+		$result = "error! file can't loaded or decrypted. \"{$page}({$path})\"";
+	}else{
+		if ($join) {
+			if ($result !== FALSE) {
+				// Removing line-feeds
+				$result = str_replace("\r", '', $result);
+			}
+		} else {
+			$result = EncryptFile::dataToLines($result);
+		}
+	}
+}else{
 	if (file_exists($path)) {
 
 		if ($lock) {
@@ -62,7 +77,7 @@ function get_source($page = NULL, $lock = TRUE, $join = FALSE)
 			@fclose($fp);
 		}
 	}
-
+}
 	return $result;
 }
 
@@ -279,6 +294,19 @@ function file_write($dir, $page, $str, $notimestamp = FALSE, $is_delete = FALSE)
 	$str = rtrim(preg_replace('/' . "\r" . '/', '', $str)) . "\n";
 	$timestamp = ($file_exists && $notimestamp) ? filemtime($file) : FALSE;
 
+if(1){
+	$strWrite = $str;
+	if(EncryptFile::checkPageAuth($page) ){		// 閲覧制限ページ？
+		global $auth_users_encryptfile_password;
+		if( isset($auth_users_encryptfile_password) ){	// // 暗号処理有効？
+			$strWrite = EncryptFile::encryptDataUser($str);
+			if( $strWrite === false ){
+				die_message("error! encrypt.");
+			}
+		}
+	}
+	file_put_contents($file, $strWrite, LOCK_EX );
+}else{
 	$fp = fopen($file, 'a') or die('fopen() failed: ' .
 		htmlsc(basename($dir) . '/' . encode($page) . '.txt') .	
 		'<br />' . "\n" .
@@ -290,6 +318,7 @@ function file_write($dir, $page, $str, $notimestamp = FALSE, $is_delete = FALSE)
 	fputs($fp, $str);
 	flock($fp, LOCK_UN);
 	fclose($fp);
+}
 
 	if ($timestamp) pkwk_touch_file($file, $timestamp);
 

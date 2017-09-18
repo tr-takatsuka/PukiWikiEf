@@ -413,6 +413,12 @@ div#lastmodified {
 	margin:0px;
 }
 
+div#encrypted_method {
+	font-size:80%;
+	padding:0px;
+	margin:0px;
+}
+
 div#related {
 <?php   if ($media == 'print') { ?>
         display:none;

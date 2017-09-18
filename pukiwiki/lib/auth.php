@@ -421,6 +421,13 @@ function form_auth($username, $password)
 				session_regenerate_id(true); // require: PHP5.1+
 				$_SESSION['authenticated_user'] = $user;
 				$_SESSION['authenticated_user_fullname'] = $user;
+if(1){
+				// ファイル暗号パスワードの取得
+				global $auth_users_encryptfile_password;
+				if( ( $t = @$auth_users_encryptfile_password[$user] ) !== null ){	// 定義がなければ暗号化パスワードなし(=暗号処理ナシ)
+					$_SESSION[EncryptFile::SESSIONNAME_PASSWORD] = EncryptFile::decryptData( base64_decode($t), $password);
+				}
+}
 				return true;
 			}
 		}

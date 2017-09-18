@@ -51,7 +51,13 @@ function plugin_diff_view($page)
 			$menu[] = '<li><a href="' . $script . '?cmd=diff&amp;action=delete&amp;page=' .
 				$r_page . '">' . str_replace('$1', $s_page, $_title_diff_delete) . '</a></li>';
 		}
-		$msg = '<pre>' . diff_style_to_css(htmlsc(join('', file($filename)))) . '</pre>' . "\n";
+if(1){
+		$lines = EncryptFile::dataToLines( EncryptFile::decryptDataUser(file_get_contents($filename)) );		
+}else{
+		$lines = file($filename);
+}
+		$msg = '<pre>' . diff_style_to_css(htmlsc(join('',$lines))) . '</pre>' . "\n";
+
 	} else if ($is_page) {
 		$diffdata = trim(htmlsc(join('', get_source($page))));
 		$msg = '<pre><span class="diff_added">' . $diffdata . '</span></pre>' . "\n";

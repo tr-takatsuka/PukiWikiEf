@@ -60,6 +60,7 @@ define('PKWKEXP_DISABLE_MULTILINE_PLUGIN_HACK', 1); // 1 = Disabled
 
 // LANG - Internal content encoding ('en', 'ja', or ...)
 define('LANG', 'ja');
+define('LANG_LOCALE', 'ja_JP.UTF-8' );	// PHP set_locale() setting, null to not set
 
 // UI_LANG - Content encoding for buttons, menus,  etc
 define('UI_LANG', LANG); // 'en' for Internationalized wikisite
@@ -219,7 +220,7 @@ $pagereading_config_dict = ':config/PageReading/dict';
 /////////////////////////////////////////////////
 // Authentication type
 // AUTH_TYPE_NONE, AUTH_TYPE_FORM, AUTH_TYPE_BASIC, AUTH_TYPE_EXTERNAL, ...
-// $auth_type = AUTH_TYPE_FORM;
+$auth_type = AUTH_TYPE_FORM;
 // $auth_external_login_url_base = './exlogin.php';
 
 /////////////////////////////////////////////////
@@ -246,6 +247,15 @@ $auth_users = array(
 	'hoge'	=> '{SMD5}OzJo/boHwM4q5R+g7LCOx2xGMkFKRVEx',      // LDAP SMD5 'hoge_passwd'
 );
 
+// 暗号化ファイルのパスワード定義
+// ・定義がない場合は、暗号処理ナシ。
+// ・暗号化ファイルのパスワードは全ユーザー共通となるように設定すべし。
+$auth_users_encryptfile_password = array(
+	'foo'	=> 'AGJmLWNiYwAxOAC4Dh44Ccm/Sttot2yosxBlad+zcfpOAdn/yV3OoaKtPQ==',	// base64_encode(EncryptFile::encryptData('encryptfile_passwd','foo_passwd')),
+	'bar'	=> 'AGJmLWNiYwAxOAAm0aIrdmEZo1C4lEYo9U6ecOuYYXLKpjjxORv3QcO8DQ==',	// base64_encode(EncryptFile::encryptData('encryptfile_passwd','bar_passwd')),
+	'hoge'	=> 'AGJmLWNiYwAxOABtyeXQLcQ+wDNdDxtZVuzYnmNchEBeIeNtvQuQdpIpcg==',	// base64_encode(EncryptFile::encryptData('encryptfile_passwd','hoge_passwd')),
+);
+
 // Group definition
 $auth_groups = array(
 	// Groupname => group members(users)
@@ -261,10 +271,11 @@ $auth_method_type	= 'pagename';	// By Page name
 
 /////////////////////////////////////////////////
 // Read auth (0:Disable, 1:Enable)
-$read_auth = 0;
+$read_auth = 1;
 
 $read_auth_pages = array(
 	// Regex		   Groupname or Username
+	'##'	=> 'foo,bar,hoge',
 	'#PageForAllValidUsers#'	=> 'valid-user',
 	'#HogeHoge#'		=> 'hoge',
 	'#(NETABARE|NetaBare)#'	=> 'foo,bar,hoge',
@@ -272,10 +283,11 @@ $read_auth_pages = array(
 
 /////////////////////////////////////////////////
 // Edit auth (0:Disable, 1:Enable)
-$edit_auth = 0;
+$edit_auth = 1;
 
 $edit_auth_pages = array(
 	// Regex		   Username
+	'##'	=> 'foo,bar,hoge',
 	'#BarDiary#'		=> 'bar',
 	'#HogeHoge#'		=> 'hoge',
 	'#(NETABARE|NetaBare)#'	=> 'foo,bar,hoge',
@@ -285,7 +297,7 @@ $edit_auth_pages = array(
 // Search auth
 // 0: Disabled (Search read-prohibited page contents)
 // 1: Enabled  (Search only permitted pages for the user)
-$search_auth = 0;
+$search_auth = 1;
 
 /////////////////////////////////////////////////
 // $whatsnew: Max number of RecentChanges
