@@ -51,6 +51,7 @@ require(LIB_DIR . 'proxy.php');
 if (! extension_loaded('mbstring')) {
 	require(LIB_DIR . 'mbstring.php');
 }
+require(LIB_DIR . 'encryptfile.php');
 
 // Defaults
 $notify = 0;

@@ -123,6 +123,7 @@ function plugin_attach_action()
 		case 'unfreeze' : return attach_freeze(FALSE);
 		case 'rename'   : return attach_rename();
 		case 'upload'   : return attach_showform();
+		case 'encrypt'  : return attach_encrypt();
 		}
 		if ($page == '' || ! is_page($page)) {
 			return attach_list();
@@ -191,8 +192,19 @@ function attach_upload($file, $page, $pass = NULL)
 		return array('result'=>FALSE,
 			'msg'=>$_attach_messages['err_exists']);
 
+if(1){
+	if( is_uploaded_file($file['tmp_name']) ){
+		$encdata = EncryptFile::encryptUser( file_get_contents($file['tmp_name']) );
+		@unlink($file['tmp_name']);		// 念のため削除
+		if( $encdata===false || false===file_put_contents($obj->filename,$encdata,LOCK_EX) ){
+			die_message("error! encrypt.");
+		}
+		chmod($obj->filename, PLUGIN_ATTACH_FILE_MODE);
+	}
+}else{
 	if (move_uploaded_file($file['tmp_name'], $obj->filename))
 		chmod($obj->filename, PLUGIN_ATTACH_FILE_MODE);
+}
 
 	if (is_page($page))
 		pkwk_touch_file(get_filename($page));
@@ -314,6 +326,21 @@ function attach_open()
 		array('msg'=>$_attach_messages['err_notfound']);
 }
 
+// 暗号化
+function attach_encrypt()
+{
+	global $vars, $_attach_messages;
+
+	foreach (array('refer', 'file', 'age') as $var) {
+		${$var} = isset($vars[$var]) ? $vars[$var] : '';
+	}
+	$obj = new AttachFile($refer, $file, $age);
+	if( !$obj->getstatus() ){
+		return array('msg'=>$_attach_messages['err_notfound']);
+	}
+	return $obj->encrypt();
+}
+
 // 一覧取得
 function attach_list()
 {
@@ -353,7 +380,12 @@ function attach_mime_content_type($filename, $displayname)
 	$pathinfo = pathinfo($displayname);
 	$ext0 = $pathinfo['extension'];
 	if (preg_match('/^(gif|jpg|jpeg|png|swf)$/i', $ext0)) {
+if(1){
+		$refData = EncryptFile::decryptUser( file_get_contents($filename) );
+		$size = @getimagesize('data:application/octet-stream;base64,' . base64_encode($refData) );
+}else{
 		$size = @getimagesize($filename);
+}
 		if (is_array($size)) {
 			switch ($size[2]) {
 				case 1: return 'image/gif';
@@ -431,6 +463,7 @@ class AttachFile
 	var $time_str = '';
 	var $size_str = '';
 	var $status = array('count'=>array(0), 'age'=>'', 'pass'=>'', 'freeze'=>FALSE);
+	var $isEncrypted = false;
 
 	function AttachFile($page, $file, $age = 0)
 	{
@@ -463,7 +496,13 @@ class AttachFile
 		}
 		if (! $this->exist) return FALSE;
 		$this->time_str = get_date('Y/m/d H:i:s', $this->time);
+if(1){
+		$fileInfo = EncryptFile::getFileInfo($this->filename);
+		$this->isEncrypted = $fileInfo->isEncrypted;
+		$this->size     = $fileInfo->size;
+}else{
 		$this->size     = filesize($this->filename);
+}
 		$this->size_str = sprintf('%01.1f', round($this->size/1024, 1)) . 'KB';
 		$this->type     = attach_mime_content_type($this->filename, $this->file);
 		return TRUE;
@@ -558,6 +597,12 @@ class AttachFile
 				}
 			}
 		}
+
+		$msg_encrypt = '';
+		if( !$this->isEncrypted ){
+			$msg_encrypt = '<input type="radio" name="pcmd" id="_p_attach_encrypt" value="encrypt" /><label for="_p_attach_encrypt">To encrypt</label><br />';
+		}
+
 		$info = $this->toString(TRUE, FALSE);
 		$hash = $this->gethash();
 
@@ -573,6 +618,7 @@ class AttachFile
  <dd>{$_attach_messages['msg_filename']}:{$this->filename}</dd>
  <dd>{$_attach_messages['msg_md5hash']}:$hash</dd>
  <dd>{$_attach_messages['msg_filesize']}:{$this->size_str} ({$this->size} bytes)</dd>
+ <dd>Encrypted:{$this->isEncrypted}</dd>
  <dd>Content-type:{$this->type}</dd>
  <dd>{$_attach_messages['msg_date']}:{$this->time_str}</dd>
  <dd>{$_attach_messages['msg_dlcount']}:{$this->status['count'][$this->age]}</dd>
@@ -589,6 +635,7 @@ $s_err
   $msg_delete
   $msg_freeze
   $msg_rename
+  $msg_encrypt
   <br />
   <label for="_p_attach_password">{$_attach_messages['msg_password']}:</label>
   <input type="password" name="pass" id="_p_attach_password" size="8" />
@@ -649,6 +696,14 @@ EOD;
 		}
 
 		return array('msg'=>$_attach_messages['msg_deleted']);
+	}
+
+	function encrypt()
+	{
+		if( EncryptFile::fileToEncrypt($this->filename) ){
+			return array('msg'=>'encrypt succeeded.');
+		}
+		return array('msg'=>'encrypt error.');
 	}
 
 	function rename($pass, $newname)
@@ -743,7 +798,11 @@ EOD;
 		header('Content-Length: ' . $this->size);
 		header('Content-Type: '   . $this->type);
 
+if(1){
+		EncryptFile::downloadFileUser($this->filename);
+}else{
 		@readfile($this->filename);
+}
 		exit;
 	}
 }

@@ -277,7 +277,12 @@ function plugin_ref_body($args)
 			}
 
 			$width = $height = 0;
+if(1){
+			$refData = EncryptFile::decryptUser( file_get_contents($file) );
+			$size = @getimagesize('data:application/octet-stream;base64,' . base64_encode($refData) );
+}else{
 			$size = @getimagesize($file);
+}
 			if (is_array($size)) {
 				$width  = $size[0];
 				$height = $size[1];
@@ -401,7 +406,13 @@ function plugin_ref_action()
 	if (!$is_image) {
 		return array('msg'=>'Seems not an image', 'body'=>$usage);
 	}
+
+if(1){
+	$refData = EncryptFile::decryptUser( file_get_contents($ref) );
+	$got = @getimagesize('data:application/octet-stream;base64,' . base64_encode($refData) );
+}else{
 	$got = @getimagesize($ref);
+}
 	if (! isset($got[2])) $got[2] = FALSE;
 	switch ($got[2]) {
 	case 1: $type = 'image/gif' ; break;
@@ -430,6 +441,10 @@ function plugin_ref_action()
 		.'"; filename*=utf-8\'\'' . rawurlencode($utf8filename));
 	header('Content-Length: ' . $size);
 	header('Content-Type: '   . $type);
+if(1){
+	echo $refData;
+}else{
 	@readfile($ref);
+}
 	exit;
 }
