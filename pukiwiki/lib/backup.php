@@ -87,9 +87,15 @@ function make_backup($page, $is_delete, $wikitext)
 		$fp = _backup_fopen($page, 'wb')
 			or die_message('Cannot open ' . htmlsc(_backup_get_filename($page)) .
 			'<br />Maybe permission is not writable or filename is too long');
+if(1){
+		$data  = $strout . "\n" . $body . "\n" . $body_on_delete . "\n";
+		$data = EncryptFile::encryptDataUser($data);
+		gzputs($fp, $data );
+}else{
 		_backup_fputs($fp, $strout);
 		_backup_fputs($fp, $body);
 		_backup_fputs($fp, $body_on_delete);
+}
 		_backup_fclose($fp);
 	}
 }
@@ -259,9 +265,23 @@ if (extension_loaded('zlib')) {
  */
 	function _backup_file($page)
 	{
+if(1){
+		$fpath = _backup_get_filename($page);
+		if( ( $zp = gzopen( $fpath, 'rb' ) ) !== false ){
+			$data = gzread($zp, 1024*1024*1024 );
+			gzclose($zp);
+			$data = EncryptFile::decryptDataUser( $data );
+			if( $data !== false ){
+				$data = EncryptFile::dataToLines($data);
+				return $data;
+			}
+		}
+		return array();
+}else{
 		return _backup_file_exists($page) ?
 			gzfile(_backup_get_filename($page)) :
 			array();
+}
 	}
 }
 /////////////////////////////////////////////////

@@ -51,6 +51,7 @@ require(LIB_DIR . 'proxy.php');
 if (! extension_loaded('mbstring')) {
 	require(LIB_DIR . 'mbstring.php');
 }
+require(LIB_DIR . 'encryptfile.php');
 
 // Defaults
 $notify = 0;
@@ -61,6 +62,12 @@ require(LIB_DIR . 'init.php');
 // Load optional libraries
 if ($notify) {
 	require(LIB_DIR . 'mail.php'); // Mail notification
+}
+
+
+// locale
+if( defined('LANG_LOCALE') ){
+	setlocale(LC_ALL, LANG_LOCALE );
 }
 
 /////////////////////////////////////////////////

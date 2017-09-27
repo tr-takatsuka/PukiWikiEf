@@ -121,6 +121,12 @@ function catbody($title, $page, $body)
 	$lastmodified = $is_read ?  format_date(get_filetime($_page)) .
 		' ' . get_pg_passage($_page, FALSE) : '';
 
+if(1){
+	if( ( $fileInfo = EncryptFile::getFileInfo(get_filename($_page)))!==false ){
+		$encrypted_method = $fileInfo->encryptedMethod ? : 'none';
+	}
+}
+
 	// List of attached files to the page
 	$attaches = ($attach_link && $is_read && exist_plugin_action('attach')) ?
 		attach_filelist() : '';

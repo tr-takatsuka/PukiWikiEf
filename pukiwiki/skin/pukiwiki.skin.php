@@ -272,6 +272,9 @@ function _toolbar($key, $x = 20, $y = 20){
 <?php if ($lastmodified != '') { ?>
 <div id="lastmodified">Last-modified: <?php echo $lastmodified ?></div>
 <?php } ?>
+<?php if ($encrypted_method != '') { ?>
+<div id="encrypted_method">encrypted-method: <?php echo $encrypted_method ?></div>
+<?php } ?>
 
 <?php if ($related != '') { ?>
 <div id="related">Link: <?php echo $related ?></div>
